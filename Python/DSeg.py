@@ -23,9 +23,9 @@ def write_D(data_L,file):
         json.dump(data, f, indent=4)
 
 def RGB_Seggrigation(d):
-    R = d[:, :,0]
-    G = d[:, :,0]
-    B = d[:, :,0]
+    R = d[:, :, 0]
+    G = d[:, :, 1]
+    B = d[:, :, 2]
 
     write_D(R,"R_data.json")
     write_D(G,"G_data.json")
@@ -60,8 +60,8 @@ def show_img(data,color):
             plt.show()
 
 def filter_apply(D, fil):
-    d = np.array(D)
-    fil = np.array(fil)
+    d = np.array(D, dtype=float)
+    fil = np.array(fil, dtype=float)
     filt = fil.shape[0]
 
     H, W = d.shape

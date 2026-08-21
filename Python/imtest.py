@@ -20,21 +20,50 @@ fil3 = [
         [-1,0,1],
         [-1,-1,0]
         ]
-fil = [fil1,fil2,fil3]
 
-def main():
-    image_list = DSeg.read_img("images.jpg")
-    list_R, list_G, list_B = DSeg.RGB_Seggrigation(image_list)
 
+def process_channel(channel_data, filters):
+    """Apply filters and pooling to a single channel"""
     # Run the first filter
-    temp = DSeg.filter_apply(list_R, fil[0])
-    Flist_R = np.zeros_like(temp, dtype=float)   # <-- use here
+    temp = DSeg.filter_apply(channel_data, filters[0])
+    filtered = np.zeros_like(temp, dtype=float)
 
     # Accumulate over all filters
-    for i in fil:
-        temp = DSeg.filter_apply(list_R, i)
-        Flist_R += temp
+    for f in filters:
+        temp = DSeg.filter_apply(channel_data, f)
+        filtered += temp
 
-    Flist_R = Flist_R / len(fil)   # average over filters
-    DSeg.show_img(DSeg.pooling(Flist_R), 'R')
+    filtered = filtered / len(filters)   # average over filters
+    
+    # Apply ReLU to remove negative values (only keep positive edge responses)
+    filtered = np.maximum(filtered, 0)
+    
+    # Normalize to [0, 255] range
+    if filtered.max() > 0:
+        filtered = (filtered / filtered.max()) * 255
+    
+    return DSeg.pooling(filtered)
+
+def main():
+    fil = [fil0, fil1, fil2, fil3]
+    image_list = DSeg.read_img("Untitled.jpg")
+    
+    # Normalize image to 0-255 range for better filter performance
+    if image_list.max() <= 1.0:
+        image_list = image_list * 255
+    
+    array_R, array_G, array_B = DSeg.RGB_Seggrigation(image_list)
+    
+    # Process each channel
+    result_R = process_channel(array_R, fil)
+    result_G = process_channel(array_G, fil)
+    result_B = process_channel(array_B, fil)
+    
+    final_arr = DSeg.RGB_Conjugation(result_R, result_G, result_B)
+    
+    # Final normalization to ensure values are in [0, 255]
+    final_arr = np.clip(final_arr, 0, 255)
+    
+    DSeg.show_img(final_arr, "F")
+
 main()
