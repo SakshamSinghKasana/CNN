@@ -54,4 +54,4 @@ fil = [fil0]#,fil1,fil2,fil3]
 #
 
 # DSeg.Show_img(DSeg.pooling(DSeg.pooling(DSeg.filter_apply(DSeg.load_D("R_data.json"), fil0))),'R')
-DSeg.Show_img(DSeg.pooling(DSeg.filter_apply(DSeg.load_D("R_data.json"), fil0)),'R')
+DSeg.show_img(DSeg.pooling(DSeg.filter_apply(DSeg.load_D("R_data.json"), fil0)),'R')

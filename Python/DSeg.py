@@ -1,3 +1,14 @@
+'''
+load_D -> to read data from a json file
+write_D -> to write the inputrd data in the json file
+RGB_Seggrigation -> to distribute the R, G, and B values in respective lists
+RGB_Conjugation -> to combine all the R, G, and B lists into one lists
+read_img -> used to read an image and get the list of the values
+show_img -> to plot the image list using matplotlib
+cal_M -> used to calculate the filter and the underlying matrices and return a value
+filter_apply -> used to apply the filter on a 2D list of the image
+pooling -> used for the pooling step of the CNN
+'''
 import json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,7 +61,11 @@ def RGB_Conjugation(R,G,B):
 
     return d
 
-def Show_img(data,color):
+def read_img(image):
+    image_array = plt.imread(image)
+    return image_array.tolist()
+
+def show_img(data,color):
     match color:
         case "R":
             plt.imshow(data,cmap='Reds')
