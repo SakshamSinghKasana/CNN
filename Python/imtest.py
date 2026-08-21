@@ -39,31 +39,41 @@ def process_channel(channel_data, filters):
     filtered = np.maximum(filtered, 0)
     
     # Normalize to [0, 255] range
-    if filtered.max() > 0:
-        filtered = (filtered / filtered.max()) * 255
+    if filtered.max() >= 255:
+        filtered = (filtered/filtered.max()) * 255
     
-    return DSeg.pooling(filtered)
+    return np.uint8(filtered) #DSeg.pooling(np.uint8(filtered))
 
 def main():
     fil = [fil0, fil1, fil2, fil3]
-    image_list = DSeg.read_img("Untitled.jpg")
+    image_list = DSeg.read_img("images.jpg")
     
+    # print(np.max(image_list))
+    # if image_list.max() >= 1:
+    #     image_list = (image_list/image_list.max())
+    print(np.max(image_list))
+
     # Normalize image to 0-255 range for better filter performance
-    if image_list.max() <= 1.0:
-        image_list = image_list * 255
-    
+    if image_list.max() <= 255:
+        image_list = image_list*255
+
+    print(np.max(image_list))
+
     array_R, array_G, array_B = DSeg.RGB_Seggrigation(image_list)
-    
+
     # Process each channel
     result_R = process_channel(array_R, fil)
     result_G = process_channel(array_G, fil)
     result_B = process_channel(array_B, fil)
-    
+
     final_arr = DSeg.RGB_Conjugation(result_R, result_G, result_B)
-    
+
+    print(final_arr.min())
     # Final normalization to ensure values are in [0, 255]
     final_arr = np.clip(final_arr, 0, 255)
-    
+
     DSeg.show_img(final_arr, "F")
+    # print(np.max(final_arr))
+    # DSeg.write_D(final_arr,"data.json")
 
 main()
