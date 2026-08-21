@@ -5,7 +5,6 @@ RGB_Seggrigation -> to distribute the R, G, and B values in respective lists
 RGB_Conjugation -> to combine all the R, G, and B lists into one lists
 read_img -> used to read an image and get the list of the values
 show_img -> to plot the image list using matplotlib
-cal_M -> used to calculate the filter and the underlying matrices and return a value
 filter_apply -> used to apply the filter on a 2D list of the image
 pooling -> used for the pooling step of the CNN
 '''
@@ -16,54 +15,31 @@ import matplotlib.pyplot as plt
 def load_D(img):
     with open(img) as f:
         d = json.load(f)
-    return d
+    return np.array(d)
 
-def write_D(data,file):
+def write_D(data_L,file):
+    data = data_L.tolist()
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
 def RGB_Seggrigation(d):
-    R, G, B, E = [], [], [], []
-
-    # Assuming d is shaped like: [ [ [R,G,B], [R,G,B], ... ] ]
-    for row in d:              # iterate over rows
-        r_row, g_row, b_row, e_row = [], [], [], []
-        for pixel in row:         # each pixel is [R,G,B]
-            r_row.append(pixel[0])
-            g_row.append(pixel[1])
-            b_row.append(pixel[2])
-            e_row.append(0)
-        R.append(r_row)
-        G.append(g_row)
-        B.append(b_row)
-        E.append(e_row)
+    R = d[:, :,0]
+    G = d[:, :,0]
+    B = d[:, :,0]
 
     write_D(R,"R_data.json")
     write_D(G,"G_data.json")
     write_D(B,"B_data.json")
-    write_D(E,"E_data.json")
 
     return R,G,B
 
 def RGB_Conjugation(R,G,B):
-    d = []
-    # Assuming d is shaped like: [ [ [R,G,B], [R,G,B], ... ] ]
-    for row in range(len(R)):              # iterate over rows
-        pix = []
-        r = []
-        for pixel in range(len(R[row])):         # each pixel is [R,G,B]
-            pix.append(R[row][pixel])
-            pix.append(G[row][pixel])
-            pix.append(B[row][pixel])
-            r.append(pix)
-            pix = []
-        d.append(r)
-
+    d = np.stack((R,G,B),axis=-1) #Combines all the arrays into one array ex: (200, 300, 3)
     return d
 
 def read_img(image):
     image_array = plt.imread(image)
-    return image_array.tolist()
+    return image_array
 
 def show_img(data,color):
     match color:
@@ -83,67 +59,37 @@ def show_img(data,color):
             plt.imshow(data)
             plt.show()
 
-def cal_M(sm, fil, r):
-    sm1 = sm.tolist()
-    sum = 0
-    for i in range(r):
-        for j in range(r):
-            m = sm1[i][j]*fil[i][j]
-            sum+=m 
-    return sum
-
 def filter_apply(D, fil):
-
     d = np.array(D)
-    
-    activation_M = []
-    stride = 1
-    filt = 3
-    Yl = 0
-    for a in range(filt,len(d)+1):
-        Xl=0
-        row = []
-        for b in range(filt,len(d)+1):
-            sm = d[Yl:a, Xl:b] #The matrix that is scanned by the filter
+    fil = np.array(fil)
+    filt = fil.shape[0]
 
-            #____________Write the filter calculation here_____________
-            row.append(cal_M(sm,fil, filt))
+    H, W = d.shape
+    out_h, out_w = H - filt + 1, W - filt + 1
 
-            Xl+=stride
-        Yl+=stride
-        activation_M.append(row)
-    
+    # Build output array
+    activation_M = np.empty((out_h, out_w))
+
+    # Vectorized inner product using broadcasting
+    for i in range(out_h):
+        for j in range(out_w):
+            activation_M[i, j] = np.sum(d[i:i+filt, j:j+filt] * fil)
+
     return activation_M
 
-def pooling(D):
+
+def pooling(D, stride=2, filt=2):
     d = np.array(D)
-    
-    activation_M = []
-    stride = 2
-    filt = 2
-    Yl = 0
-    for a in range(filt,len(d)+1,2):
-        Xl=0
-        row = []
-        for b in range(filt,len(d)+1,2):
-            sm = d[Yl:a, Xl:b] #The matrix that is scanned by the filter
 
-            #____________Write the filter calculation here_____________
-            row.append(Pool_F(sm))
+    # Ensure dimensions are divisible by filt
+    h, w = d.shape
+    h_out, w_out = h // filt, w // filt
 
-            Xl+=stride
-        Yl+=stride
-        activation_M.append(row)
-    
+    # Reshape into blocks of size filt×filt
+    d = d[:h_out*filt, :w_out*filt]  # crop if not divisible
+    d = d.reshape(h_out, filt, w_out, filt)
+
+    # Take mean over the small blocks
+    activation_M = d.mean(axis=(1, 3))
+
     return activation_M
-
-def Pool_F(sm):
-    sum = 0
-    dem = 0
-    for i in sm:
-        for j in i:
-            sum+=j
-            dem+=1
-    return sum/dem
-
-
