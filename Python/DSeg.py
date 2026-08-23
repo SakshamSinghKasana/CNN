@@ -79,8 +79,6 @@ def filter_apply(D, fil):
 
 
 def pooling(D, stride=2, filt=2):
-    d = np.array(D)
-
     # Ensure dimensions are divisible by filt
     h, w = d.shape
     h_out, w_out = h // filt, w // filt
