@@ -78,7 +78,7 @@ def filter_apply(D, fil):
     return activation_M
 
 
-def pooling(D, stride=2, filt=2):
+def pooling(d, stride=2, filt=2):
     # Ensure dimensions are divisible by filt
     h, w = d.shape
     h_out, w_out = h // filt, w // filt

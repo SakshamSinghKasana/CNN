@@ -42,11 +42,11 @@ def process_channel(channel_data, filters):
     if filtered.max() >= 255:
         filtered = (filtered/filtered.max()) * 255
     
-    return np.uint8(filtered) #DSeg.pooling(np.uint8(filtered))
+    return np.uint8(DSeg.pooling(np.uint8(filtered)))#np.uint8(filtered) #DSeg.pooling(np.uint8(filtered))
 
 def main():
     fil = [fil0, fil1, fil2, fil3]
-    image_list = DSeg.read_img("images.jpg")
+    image_list = DSeg.read_img("image.png")
     
     # Normalize image to 0-255 range for better filter performance
     if image_list.max() <= 255:
